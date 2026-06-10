@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Rectoría - Monedero Digital IUC</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    // Validate session for Rector role (5)
+    checkSession([5]);
+  </script>
+
+  <!-- Navbar -->
+  <nav class="bg-gradient-iuc text-white px-6 py-4 shadow-lg border-b-4 border-dorado">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <i class="fa-solid fa-wallet text-2xl text-yellow-400"></i>
+        <span class="font-bold text-lg tracking-wide">IUC Monedero</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="text-right hidden sm:block">
+          <p class="text-sm font-semibold" id="nav-user-name">Cargando...</p>
+          <span class="text-xs text-yellow-300" id="nav-user-role">Rector</span>
+        </div>
+        <button onclick="logoutUser()" class="p-2.5 bg-green-800 hover:bg-green-950 text-white rounded-xl transition-all shadow-inner">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content Layout -->
+  <main class="max-w-7xl mx-auto px-6 py-8">
+    <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div>
+        <h2 class="text-2xl font-bold text-slate-800">Supervisión Directiva del Sistema</h2>
+        <p class="text-sm text-slate-500">Consulte indicadores globales, active el modo de emergencia institucional y audite operaciones.</p>
+      </div>
+      <span class="px-3 py-1 bg-green-150 border border-green-300 text-green-800 rounded-lg text-xs font-semibold">
+        <i class="fa-solid fa-circle-check text-green-600"></i> Servidor Conectado
+      </span>
+    </div>
+
+    <!-- 1. INSTITUTIONAL KPI CARDS -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      
+      <!-- Wallet Funds Card -->
+      <div class="bg-white rounded-2xl shadow-sm p-6 border-l-4 border-green-600">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Saldos en Monedero</p>
+            <h3 class="text-2xl font-extrabold text-slate-800 mt-2" id="kpi-custodiado">$0</h3>
+          </div>
+          <span class="p-3 bg-green-50 text-green-700 rounded-xl"><i class="fa-solid fa-vault text-xl"></i></span>
+        </div>
+        <p class="text-[10px] text-slate-400 mt-4">Total de fondos depositados por estudiantes.</p>
+      </div>
+
+      <!-- Consumed Funds Card -->
+      <div class="bg-white rounded-2xl shadow-sm p-6 border-l-4 border-slate-700">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Consumido</p>
+            <h3 class="text-2xl font-extrabold text-slate-800 mt-2" id="kpi-consumo">$0</h3>
+          </div>
+          <span class="p-3 bg-slate-50 text-slate-700 rounded-xl"><i class="fa-solid fa-print text-xl"></i></span>
+        </div>
+        <p class="text-[10px] text-slate-400 mt-4">Costo acumulado de copias impresas (<span id="kpi-copias-count">0</span> copias).</p>
+      </div>
+
+      <!-- Recharge Funds Card -->
+      <div class="bg-white rounded-2xl shadow-sm p-6 border-l-4 border-amber-500">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Recargado</p>
+            <h3 class="text-2xl font-extrabold text-slate-800 mt-2" id="kpi-recargas">$0</h3>
+          </div>
+          <span class="p-3 bg-amber-50 text-amber-600 rounded-xl"><i class="fa-solid fa-circle-arrow-up text-xl"></i></span>
+        </div>
+        <p class="text-[10px] text-slate-400 mt-4">Total acreditado por la administración.</p>
+      </div>
+
+      <!-- Active Students Card -->
+      <div class="bg-white rounded-2xl shadow-sm p-6 border-l-4 border-blue-500">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Estudiantes Activos</p>
+            <h3 class="text-2xl font-extrabold text-slate-800 mt-2" id="kpi-students">0</h3>
+          </div>
+          <span class="p-3 bg-blue-50 text-blue-600 rounded-xl"><i class="fa-solid fa-graduation-cap text-xl"></i></span>
+        </div>
+        <p class="text-[10px] text-slate-400 mt-4">Alumnos registrados en el monedero digital.</p>
+      </div>
+
+    </div>
+
+    <!-- 2. EMERGENCY CARD & CONTROLS -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+      
+      <!-- Emergency Mode Controller (L: 5 cols) -->
+      <div class="lg:col-span-5 bg-white rounded-2xl shadow-md p-6 border border-red-100 relative overflow-hidden">
+        <!-- Accent warning block at the top if active -->
+        <div id="emerg-accent" class="absolute top-0 left-0 w-full h-2 bg-slate-200"></div>
+
+        <div class="flex items-center gap-3 mb-4">
+          <span id="emerg-icon" class="p-3 bg-slate-100 text-slate-600 rounded-xl text-xl"><i class="fa-solid fa-kit-medical"></i></span>
+          <div>
+            <h3 class="text-lg font-bold text-slate-800">Modo de Emergencia</h3>
+            <span id="emerg-status-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 uppercase">INACTIVO</span>
+          </div>
+        </div>
+
+        <p class="text-xs text-slate-500 mb-6 leading-relaxed">
+          Al activarse, permite a los estudiantes imprimir material educativo a crédito temporal (saldo negativo controlado) en caso de que fallen las redes o no dispongan de saldo inmediato.
+        </p>
+
+        <form id="emergency-form" class="flex flex-col gap-4">
+          <!-- Switch Toggle -->
+          <div class="flex justify-between items-center py-2.5 px-4 bg-slate-50 rounded-xl border border-slate-100">
+            <span class="text-xs font-bold text-slate-600">Estado del Modo Emergencia</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="emerg-toggle" class="sr-only peer">
+              <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+            </label>
+          </div>
+
+          <!-- Credit limit input -->
+          <div>
+            <label for="emerg-credit" class="block text-xs font-bold text-slate-500 mb-1.5">Límite de Crédito Permitido ($)</label>
+            <input type="number" id="emerg-credit" required min="0" class="w-full px-4 py-2.5 border border-slate-200 focus:outline-none focus:border-red-500 rounded-xl text-sm" placeholder="Ej: 1500 (Equivalente a 10 copias)">
+          </div>
+
+          <!-- Copy price config (Rector parameter) -->
+          <div>
+            <label for="config-copy-price" class="block text-xs font-bold text-slate-500 mb-1.5">Precio de Copia Institucional ($)</label>
+            <input type="number" id="config-copy-price" required min="10" class="w-full px-4 py-2.5 border border-slate-200 focus:outline-none focus:border-green-600 rounded-xl text-sm" placeholder="Ej: 150">
+          </div>
+
+          <button type="submit" class="w-full py-3 bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded-xl text-sm transition-colors shadow-md">
+            Guardar Parámetros Directivos
+          </button>
+        </form>
+      </div>
+
+      <!-- Audit log overview & Reports (R: 7 cols) -->
+      <div class="lg:col-span-7 flex flex-col gap-8">
+        
+        <!-- Reports card -->
+        <div class="bg-white rounded-2xl shadow-md p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-base font-bold text-slate-800">Descarga de Reportes Oficiales</h3>
+            <i class="fa-solid fa-file-export text-slate-400"></i>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <button onclick="downloadReport('consumos')" class="py-2.5 px-4 bg-slate-100 hover:bg-slate-250 text-slate-800 font-semibold rounded-xl text-xs transition-colors flex items-center justify-center gap-2">
+              <i class="fa-solid fa-print text-slate-500"></i> Exportar Consumos (PDF)
+            </button>
+            <button onclick="downloadReport('recargas')" class="py-2.5 px-4 bg-slate-100 hover:bg-slate-250 text-slate-800 font-semibold rounded-xl text-xs transition-colors flex items-center justify-center gap-2">
+              <i class="fa-solid fa-circle-arrow-up text-amber-500"></i> Exportar Recargas (PDF)
+            </button>
+          </div>
+        </div>
+
+        <!-- Latest critical audits -->
+        <div class="bg-white rounded-2xl shadow-md p-6 flex-1 flex flex-col justify-between">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-base font-bold text-slate-800">Últimos Eventos de Auditoría</h3>
+            <span class="text-xs text-slate-400">Seguimiento</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full custom-table text-[10px] text-left">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Responsable</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="rector-audit-rows">
+                <tr>
+                  <td colspan="3" class="text-center py-4 text-slate-400">Cargando eventos...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <script>
+    let rawConfig = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadRectorDashboard();
+      document.getElementById('emergency-form').addEventListener('submit', saveEmergencyConfig);
+    });
+
+    async function loadRectorDashboard() {
+      try {
+        // 1. Fetch system configs to populate form
+        const configRes = await apiFetch('/admin/config');
+        if (configRes.success) {
+          rawConfig = configRes.data;
+          
+          const emergMode = configRes.data.find(c => c.clave === 'modo_emergencia');
+          const emergCredit = configRes.data.find(c => c.clave === 'credito_emergencia');
+          const copyPrice = configRes.data.find(c => c.clave === 'precio_copia');
+
+          const isActive = emergMode && emergMode.valor === '1';
+          document.getElementById('emerg-toggle').checked = isActive;
+          document.getElementById('emerg-credit').value = emergCredit ? emergCredit.valor : '1500';
+          document.getElementById('config-copy-price').value = copyPrice ? copyPrice.valor : '150';
+
+          // Update Status UI
+          updateEmergencyUI(isActive);
+        }
+
+        // 2. Fetch users to compute student count & cumulative balances
+        const usersRes = await apiFetch('/admin/usuarios');
+        if (usersRes.success) {
+          const students = usersRes.data.filter(u => u.rol_id === 1 && u.estudiante);
+          document.getElementById('kpi-students').textContent = students.length;
+          
+          const totalBalances = students.reduce((sum, s) => sum + parseFloat(s.estudiante.saldo_actual), 0);
+          document.getElementById('kpi-custodiado').textContent = formatCurrency(totalBalances);
+        }
+
+        // 3. Fetch consumes to compute totals
+        const consumesRes = await apiFetch('/consumos');
+        if (consumesRes.success) {
+          const totalConsumosVal = consumesRes.data.reduce((sum, c) => sum + parseFloat(c.valor), 0);
+          const totalCopies = consumesRes.data.reduce((sum, c) => sum + parseInt(c.cantidad_copias), 0);
+          document.getElementById('kpi-consumo').textContent = formatCurrency(totalConsumosVal);
+          document.getElementById('kpi-copias-count').textContent = totalCopies;
+        }
+
+        // 4. Fetch recharges to compute total recargado
+        const rechargesRes = await apiFetch('/recargas');
+        if (rechargesRes.success) {
+          const totalRecargadoVal = rechargesRes.data.reduce((sum, r) => sum + parseFloat(r.valor), 0);
+          document.getElementById('kpi-recargas').textContent = formatCurrency(totalRecargadoVal);
+        }
+
+        // 5. Fetch latest audits
+        const auditsRes = await apiFetch('/admin/auditoria');
+        if (auditsRes.success) {
+          const tbody = document.getElementById('rector-audit-rows');
+          if (auditsRes.data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-slate-400">No hay registros de auditoría.</td></tr>';
+            return;
+          }
+
+          // Show latest 5
+          tbody.innerHTML = auditsRes.data.slice(0, 5).map(log => {
+            const userName = log.usuario ? `${log.usuario.nombre} ${log.usuario.apellido}` : 'Sistema';
+            const dateStr = new Date(log.fecha).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+            return `
+              <tr>
+                <td class="text-slate-500">${dateStr}</td>
+                <td class="font-bold text-slate-700">${userName}</td>
+                <td class="text-slate-600">${log.accion}</td>
+              </tr>
+            `;
+          }).join('');
+        }
+
+      } catch (err) {
+        showToast('Error al cargar datos directivos.', 'error');
+      }
+    }
+
+    function updateEmergencyUI(isActive) {
+      const badge = document.getElementById('emerg-status-badge');
+      const icon = document.getElementById('emerg-icon');
+      const accent = document.getElementById('emerg-accent');
+
+      if (isActive) {
+        badge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-800 uppercase animate-pulse';
+        badge.textContent = 'ACTIVO';
+        icon.className = 'p-3 bg-red-100 text-red-600 rounded-xl text-xl';
+        accent.className = 'absolute top-0 left-0 w-full h-2 bg-red-600';
+      } else {
+        badge.className = 'px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 uppercase';
+        badge.textContent = 'INACTIVO';
+        icon.className = 'p-3 bg-slate-100 text-slate-600 rounded-xl text-xl';
+        accent.className = 'absolute top-0 left-0 w-full h-2 bg-slate-200';
+      }
+    }
+
+    async function saveEmergencyConfig(e) {
+      e.preventDefault();
+
+      const toggleVal = document.getElementById('emerg-toggle').checked ? '1' : '0';
+      const creditVal = document.getElementById('emerg-credit').value.trim();
+      const priceVal = document.getElementById('config-copy-price').value.trim();
+
+      const body = {
+        configs: [
+          { clave: 'modo_emergencia', valor: toggleVal },
+          { clave: 'credito_emergencia', valor: creditVal },
+          { clave: 'precio_copia', valor: priceVal }
+        ]
+      };
+
+      try {
+        const res = await apiFetch('/admin/config', {
+          method: 'PUT',
+          body: body
+        });
+
+        if (res.success) {
+          showToast('Configuraciones actualizadas con éxito.', 'success');
+          loadRectorDashboard(); // refresh
+        }
+      } catch (err) {
+        showToast(err.message || 'Error al guardar configuraciones.', 'error');
+      }
+    }
+
+    async function downloadReport(type) {
+      const token = localStorage.getItem('token');
+      const filename = `reporte_${type}_${Date.now()}.pdf`;
+      const url = `/api/reportes/${type}?format=pdf`;
+      
+      try {
+        showToast('Generando reporte PDF...', 'info');
+        const res = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!res.ok) throw new Error('Error al descargar.');
+        
+        const blob = await res.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(blobUrl);
+        showToast('Descarga completada.', 'success');
+      } catch (err) {
+        showToast('No se pudo descargar el reporte.', 'error');
+      }
+    }
+
+    function formatCurrency(val) {
+      return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(val);
+    }
+  </script>
+</body>
+</html>

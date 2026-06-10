@@ -1,0 +1,198 @@
+/* Hoja de Estilos del Sistema de Monedero Digital IUC */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --verde-iuc: #1b5e20;
+  --verde-iuc-light: #2e7d32;
+  --verde-iuc-hover: #154618;
+  --verde-iuc-glow: rgba(27, 94, 32, 0.15);
+  --dorado-iuc: #b59410;
+  --dorado-iuc-hover: #91760b;
+  --dorado-iuc-light: #ffd54f;
+  --dark-slate: #1e293b;
+  --light-slate: #f8fafc;
+  --card-bg: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--light-slate);
+  color: var(--text-primary);
+  overflow-x: hidden;
+}
+
+/* Institutional Gradient Backgrounds */
+.bg-gradient-iuc {
+  background: linear-gradient(135deg, var(--verde-iuc) 0%, var(--verde-iuc-light) 100%);
+}
+
+.border-dorado {
+  border-color: var(--dorado-iuc);
+}
+
+.text-verde {
+  color: var(--verde-iuc);
+}
+
+.text-dorado {
+  color: var(--dorado-iuc);
+}
+
+.bg-verde {
+  background-color: var(--verde-iuc);
+}
+
+.bg-dorado {
+  background-color: var(--dorado-iuc);
+}
+
+.hover-bg-verde:hover {
+  background-color: var(--verde-iuc-hover);
+}
+
+.hover-bg-dorado:hover {
+  background-color: var(--dorado-iuc-hover);
+}
+
+/* Glassmorphism Cards */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.08);
+}
+
+/* Glow effects for active elements */
+.glow-verde {
+  box-shadow: 0 0 20px 0 rgba(27, 94, 32, 0.3);
+}
+
+/* Micro-animations */
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-pulse-slow {
+  animation: pulseSlow 3s infinite ease-in-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulseSlow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 0.95;
+  }
+}
+
+/* Toast Notifications Container */
+#toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 380px;
+}
+
+.toast-message {
+  padding: 16px 20px;
+  border-radius: 12px;
+  background: var(--dark-slate);
+  color: #ffffff;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transform: translateY(20px);
+  opacity: 0;
+  animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes toastIn {
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Custom Table Styles */
+.custom-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.custom-table th {
+  background-color: var(--verde-iuc);
+  color: #ffffff;
+  font-weight: 600;
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 3px solid var(--dorado-iuc);
+}
+
+.custom-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  color: var(--text-secondary);
+}
+
+.custom-table tr:hover td {
+  background-color: var(--verde-iuc-glow);
+  color: var(--text-primary);
+}
+
+/* Floating Actions button custom hover */
+.floating-action-btn {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.floating-action-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 10px 20px rgba(27, 94, 32, 0.2);
+}
+
+/* QR Code Display Container styling */
+.qr-card {
+  border: 2px dashed var(--verde-iuc);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #ffffff;
+}
+.qr-card img {
+  border-radius: 8px;
+}

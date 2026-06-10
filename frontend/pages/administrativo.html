@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Administrativo - Monedero Digital IUC</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    // Validate session for Administrativo (4) or Rector (5)
+    checkSession([4, 5]);
+  </script>
+
+  <!-- Navbar -->
+  <nav class="bg-gradient-iuc text-white px-6 py-4 shadow-lg border-b-4 border-dorado">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <i class="fa-solid fa-wallet text-2xl text-yellow-400"></i>
+        <span class="font-bold text-lg tracking-wide">IUC Monedero</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="text-right hidden sm:block">
+          <p class="text-sm font-semibold" id="nav-user-name">Cargando...</p>
+          <span class="text-xs text-yellow-300" id="nav-user-role">Administrativo</span>
+        </div>
+        <button onclick="logoutUser()" class="p-2.5 bg-green-800 hover:bg-green-950 text-white rounded-xl transition-all shadow-inner">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content Layout -->
+  <main class="max-w-7xl mx-auto px-6 py-8">
+    <div class="flex flex-col md:flex-row gap-8">
+      
+      <!-- Left Sidebar navigation tabs -->
+      <aside class="w-full md:w-64 flex flex-col gap-2">
+        <button onclick="switchTab('tab-users')" id="btn-tab-users" class="tab-btn w-full py-3 px-4 rounded-xl font-semibold text-sm text-left transition-all bg-green-700 text-white shadow-md">
+          <i class="fa-solid fa-users mr-2.5"></i> Gestión de Usuarios
+        </button>
+        <button onclick="switchTab('tab-recharges')" id="btn-tab-recharges" class="tab-btn w-full py-3 px-4 rounded-xl font-semibold text-sm text-left transition-all hover:bg-slate-100 text-slate-700">
+          <i class="fa-solid fa-receipt mr-2.5"></i> Control de Recargas
+        </button>
+        <button onclick="switchTab('tab-reports')" id="btn-tab-reports" class="tab-btn w-full py-3 px-4 rounded-xl font-semibold text-sm text-left transition-all hover:bg-slate-100 text-slate-700">
+          <i class="fa-solid fa-chart-line mr-2.5"></i> Reportes del Sistema
+        </button>
+        <button onclick="switchTab('tab-audit')" id="btn-tab-audit" class="tab-btn w-full py-3 px-4 rounded-xl font-semibold text-sm text-left transition-all hover:bg-slate-100 text-slate-700">
+          <i class="fa-solid fa-clock-rotate-left mr-2.5"></i> Registro de Auditoría
+        </button>
+      </aside>
+
+      <!-- Center content panel -->
+      <section class="flex-1 min-h-[500px]">
+        
+        <!-- ========================================== -->
+        <!-- TAB 1: USER CRUD -->
+        <!-- ========================================== -->
+        <div id="tab-users" class="tab-pane bg-white rounded-2xl shadow-md p-6 animate-fade-in">
+          <div class="flex justify-between items-center mb-6">
+            <div>
+              <h3 class="text-lg font-bold text-slate-800">Directorio de Usuarios</h3>
+              <p class="text-xs text-slate-500">Administre estudiantes, acudientes, operadores y personal directivo.</p>
+            </div>
+            <button onclick="openUserModal()" class="py-2.5 px-4 bg-gradient-iuc hover:bg-green-800 text-white font-semibold rounded-xl text-xs transition-colors flex items-center gap-1.5 shadow-md">
+              <i class="fa-solid fa-plus"></i> Registrar Usuario
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full custom-table text-xs text-left">
+              <thead>
+                <tr>
+                  <th>Usuario</th>
+                  <th>Correo</th>
+                  <th>Rol</th>
+                  <th>Detalle Rol</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="user-rows">
+                <tr>
+                  <td colspan="6" class="text-center py-8 text-slate-400">Cargando directorio de usuarios...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 2: RECHARGES -->
+        <!-- ========================================== -->
+        <div id="tab-recharges" class="tab-pane hidden bg-white rounded-2xl shadow-md p-6 animate-fade-in">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Form to create Recharge -->
+            <div class="lg:col-span-1 bg-slate-50 rounded-2xl p-5 border border-slate-150">
+              <h4 class="font-bold text-slate-800 mb-4"><i class="fa-solid fa-money-bill-wave text-green-700"></i> Registrar Nueva Recarga</h4>
+              <form id="recharge-form" class="flex flex-col gap-4">
+                <div>
+                  <label for="rec-student-code" class="block text-xs font-bold text-slate-500 mb-1">Código de Estudiante</label>
+                  <input type="text" id="rec-student-code" required class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm" placeholder="Ej: 20261001">
+                </div>
+                <div>
+                  <label for="rec-value" class="block text-xs font-bold text-slate-500 mb-1">Monto de la Recarga (COP)</label>
+                  <input type="number" id="rec-value" required min="50" step="50" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm" placeholder="Monto mínimo $100">
+                </div>
+                <button type="submit" class="w-full py-2.5 bg-gradient-iuc text-white font-semibold rounded-lg text-sm transition-all shadow-md">Acreditar y Generar Comprobante</button>
+              </form>
+            </div>
+
+            <!-- Recharges list -->
+            <div class="lg:col-span-2 flex flex-col">
+              <h4 class="font-bold text-slate-800 mb-4">Últimas Recargas de Saldo</h4>
+              <div class="overflow-x-auto flex-1">
+                <table class="w-full custom-table text-xs text-left">
+                  <thead>
+                    <tr>
+                      <th>Estudiante</th>
+                      <th>Valor</th>
+                      <th>Fecha</th>
+                      <th>Registró</th>
+                      <th>Recibo</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recharge-table-rows">
+                    <tr>
+                      <td colspan="5" class="text-center py-6 text-slate-400">Cargando recargas...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 3: REPORTS -->
+        <!-- ========================================== -->
+        <div id="tab-reports" class="tab-pane hidden bg-white rounded-2xl shadow-md p-6 animate-fade-in">
+          <h3 class="text-lg font-bold text-slate-800 mb-2">Generación de Reportes del Sistema</h3>
+          <p class="text-xs text-slate-500 mb-6">Filtre y exporte los consolidados de transacciones del monedero digital en formato PDF o Excel.</p>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 bg-slate-50 p-5 rounded-2xl border border-slate-100">
+            <div>
+              <label for="rep-type" class="block text-xs font-bold text-slate-500 mb-1.5">Tipo de Reporte</label>
+              <select id="rep-type" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm">
+                <option value="consumos">Consumos de Fotocopiadora</option>
+                <option value="recargas">Recargas de Saldo</option>
+                <option value="saldos">Saldos de Estudiantes</option>
+              </select>
+            </div>
+            <div>
+              <label for="rep-start" class="block text-xs font-bold text-slate-500 mb-1.5">Fecha Inicio (Filtro)</label>
+              <input type="date" id="rep-start" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm">
+            </div>
+            <div>
+              <label for="rep-end" class="block text-xs font-bold text-slate-500 mb-1.5">Fecha Fin (Filtro)</label>
+              <input type="date" id="rep-end" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm">
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-4">
+            <button onclick="downloadReport('pdf')" class="py-3 px-6 bg-red-700 hover:bg-red-800 text-white font-semibold rounded-xl text-sm transition-colors flex items-center justify-center gap-2 flex-1 shadow-md">
+              <i class="fa-solid fa-file-pdf"></i> Exportar Reporte PDF
+            </button>
+            <button onclick="downloadReport('excel')" class="py-3 px-6 bg-green-700 hover:bg-green-800 text-white font-semibold rounded-xl text-sm transition-colors flex items-center justify-center gap-2 flex-1 shadow-md">
+              <i class="fa-solid fa-file-excel"></i> Exportar Reporte Excel
+            </button>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 4: AUDIT LOG -->
+        <!-- ========================================== -->
+        <div id="tab-audit" class="tab-pane hidden bg-white rounded-2xl shadow-md p-6 animate-fade-in">
+          <h3 class="text-lg font-bold text-slate-800 mb-2">Bitácora de Auditoría Administrativa</h3>
+          <p class="text-xs text-slate-500 mb-6">Trazabilidad de modificaciones críticas, accesos e IP del sistema.</p>
+
+          <div class="overflow-x-auto max-h-[500px] overflow-y-auto">
+            <table class="w-full custom-table text-xs text-left">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Responsable</th>
+                  <th>Acción Realizada</th>
+                  <th>Dirección IP</th>
+                </tr>
+              </thead>
+              <tbody id="audit-table-rows">
+                <tr>
+                  <td colspan="4" class="text-center py-6 text-slate-400">Cargando registros...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+    </div>
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MODAL: CREATE / EDIT USER -->
+  <!-- ========================================== -->
+  <div id="user-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-slide-up">
+      <!-- Modal Header -->
+      <div class="bg-gradient-iuc text-white px-6 py-4 flex justify-between items-center border-b border-dorado">
+        <h3 id="modal-title" class="font-bold text-base">Registrar Nuevo Usuario</h3>
+        <button onclick="closeUserModal()" class="text-white hover:text-yellow-300 text-xl"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Modal Body Form -->
+      <form id="user-form" class="p-6 flex flex-col gap-4">
+        <input type="hidden" id="user-id">
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="u-nombre" class="block text-xs font-bold text-slate-500 mb-1">Nombre</label>
+            <input type="text" id="u-nombre" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs">
+          </div>
+          <div>
+            <label for="u-apellido" class="block text-xs font-bold text-slate-500 mb-1">Apellido</label>
+            <input type="text" id="u-apellido" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs">
+          </div>
+        </div>
+
+        <div>
+          <label for="u-correo" class="block text-xs font-bold text-slate-500 mb-1">Correo Electrónico</label>
+          <input type="email" id="u-correo" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs" placeholder="ejemplo@iuc.edu.co">
+        </div>
+
+        <div id="password-container">
+          <label for="u-pass" class="block text-xs font-bold text-slate-500 mb-1">Contraseña</label>
+          <input type="password" id="u-pass" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs" placeholder="Mínimo 6 caracteres">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="u-rol" class="block text-xs font-bold text-slate-500 mb-1">Rol</label>
+            <select id="u-rol" required onchange="toggleRoleFields()" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white">
+              <option value="1">Estudiante</option>
+              <option value="2">Acudiente</option>
+              <option value="3">Operador</option>
+              <option value="4">Administrativo</option>
+              <option value="5">Rector</option>
+            </select>
+          </div>
+          <div>
+            <label for="u-estado" class="block text-xs font-bold text-slate-500 mb-1">Estado</label>
+            <select id="u-estado" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white">
+              <option value="activo">Activo</option>
+              <option value="inactivo">Inactivo</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Student specific fields -->
+        <div id="role-fields-student" class="hidden">
+          <label for="u-code" class="block text-xs font-bold text-slate-500 mb-1">Código Estudiante (Único)</label>
+          <input type="text" id="u-code" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs">
+        </div>
+
+        <!-- Guardian specific fields -->
+        <div id="role-fields-guardian" class="hidden flex flex-col gap-3">
+          <div>
+            <label for="u-phone" class="block text-xs font-bold text-slate-500 mb-1">Teléfono</label>
+            <input type="text" id="u-phone" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs">
+          </div>
+          <div>
+            <label for="u-students" class="block text-xs font-bold text-slate-500 mb-1">Estudiantes Asociados (Multi-selección Ctrl+Click)</label>
+            <select id="u-students" multiple class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white h-24">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="flex gap-2 justify-end border-t border-slate-100 pt-4 mt-2">
+          <button type="button" onclick="closeUserModal()" class="py-2 px-4 bg-slate-150 hover:bg-slate-250 text-slate-700 font-semibold rounded-lg text-xs">Cancelar</button>
+          <button type="submit" class="py-2 px-5 bg-gradient-iuc text-white font-semibold rounded-lg text-xs shadow-md">Guardar Usuario</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let studentsCache = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadUserData(); // load current logged-in user info on nav
+      
+      // Load directory
+      loadUsers();
+      
+      // Listen to forms
+      document.getElementById('user-form').addEventListener('submit', saveUser);
+      document.getElementById('recharge-form').addEventListener('submit', registerRecharge);
+    });
+
+    // Tab Switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
+      document.getElementById(tabId).classList.remove('hidden');
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.className = 'tab-btn w-full py-3 px-4 rounded-xl font-semibold text-sm text-left transition-all hover:bg-slate-100 text-slate-700';
+      });
+
+      const activeBtn = document.getElementById(`btn-${tabId}`);
+      if (activeBtn) {
+        activeBtn.className = 'tab-btn w-full py-3 px-4 rounded-xl font-semibold text-sm text-left transition-all bg-green-700 text-white shadow-md';
+      }
+
+      // Context loaders
+      if (tabId === 'tab-users') loadUsers();
+      if (tabId === 'tab-recharges') loadRecharges();
+      if (tabId === 'tab-audit') loadAuditLogs();
+    }
+
+    async function loadUserData() {
+      const user = getUser();
+      if (user) {
+        document.getElementById('nav-user-name').textContent = `${user.nombre} ${user.apellido}`;
+        document.getElementById('nav-user-role').textContent = user.rolNombre;
+      }
+    }
+
+    // ----------------------------------------------------
+    // USER MANAGEMENT
+    // ----------------------------------------------------
+    async function loadUsers() {
+      try {
+        const res = await apiFetch('/admin/usuarios');
+        if (res.success) {
+          studentsCache = res.data.filter(u => u.rol_id === 1 && u.estudiante);
+          populateGuardianStudentsList();
+          renderUsersTable(res.data);
+        }
+      } catch (err) {
+        showToast('Error al cargar la lista de usuarios.', 'error');
+      }
+    }
+
+    function populateGuardianStudentsList() {
+      const select = document.getElementById('u-students');
+      select.innerHTML = studentsCache.map(u => `
+        <option value="${u.estudiante.id}">${u.nombre} ${u.apellido} (${u.estudiante.codigo_estudiante})</option>
+      `).join('');
+    }
+
+    function renderUsersTable(users) {
+      const tbody = document.getElementById('user-rows');
+      if (users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-slate-400">No hay usuarios registrados.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = users.map(u => {
+        let details = '-';
+        if (u.rol_id === 1 && u.estudiante) {
+          details = `<span class="font-semibold text-slate-700">Código: ${u.estudiante.codigo_estudiante}</span><br><span class="text-green-700 font-medium">Saldo: $${parseFloat(u.estudiante.saldo_actual).toFixed(0)}</span>`;
+        } else if (u.rol_id === 2 && u.acudiente) {
+          const associated = u.acudiente.estudiantes.map(s => s.codigo_estudiante).join(', ') || 'Ninguno';
+          details = `<span class="text-slate-600">Tel: ${u.acudiente.telefono}</span><br><span class="text-[10px] text-slate-400">Hijos: ${associated}</span>`;
+        }
+
+        const stateColor = u.estado === 'activo' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+        
+        return `
+          <tr>
+            <td class="font-medium text-slate-800">${u.nombre} ${u.apellido}</td>
+            <td>${u.correo}</td>
+            <td class="font-bold text-slate-600">${u.rol ? u.rol.nombre : 'Sin Rol'}</td>
+            <td>${details}</td>
+            <td>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${stateColor}">${u.estado.toUpperCase()}</span>
+            </td>
+            <td>
+              <div class="flex gap-2">
+                <button onclick="editUser(${u.id}, '${u.nombre}', '${u.apellido}', '${u.correo}', ${u.rol_id}, '${u.estado}', '${u.estudiante ? u.estudiante.codigo_estudiante : ''}', '${u.acudiente ? u.acudiente.telefono : ''}', [${u.acudiente ? u.acudiente.estudiantes.map(s=>s.id).join(',') : ''}])" class="text-blue-600 hover:text-blue-900 text-sm"><i class="fa-solid fa-pen-to-square"></i></button>
+                <button onclick="deleteUser(${u.id})" class="text-red-600 hover:text-red-900 text-sm"><i class="fa-solid fa-trash"></i></button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function toggleRoleFields() {
+      const rol = parseInt(document.getElementById('u-rol').value);
+      document.getElementById('role-fields-student').classList.add('hidden');
+      document.getElementById('role-fields-guardian').classList.add('hidden');
+
+      if (rol === 1) {
+        document.getElementById('role-fields-student').classList.remove('hidden');
+      } else if (rol === 2) {
+        document.getElementById('role-fields-guardian').classList.remove('hidden');
+      }
+    }
+
+    function openUserModal() {
+      document.getElementById('modal-title').textContent = 'Registrar Nuevo Usuario';
+      document.getElementById('user-id').value = '';
+      document.getElementById('user-form').reset();
+      document.getElementById('password-container').classList.remove('hidden');
+      document.getElementById('u-pass').required = true;
+      toggleRoleFields();
+      document.getElementById('user-modal').classList.remove('hidden');
+    }
+
+    function closeUserModal() {
+      document.getElementById('user-modal').classList.add('hidden');
+    }
+
+    async function editUser(id, nombre, apellido, correo, rolId, estado, code, phone, studentIds) {
+      document.getElementById('modal-title').textContent = 'Editar Datos de Usuario';
+      document.getElementById('user-id').value = id;
+      document.getElementById('u-nombre').value = nombre;
+      document.getElementById('u-apellido').value = apellido;
+      document.getElementById('u-correo').value = correo;
+      document.getElementById('u-rol').value = rolId;
+      document.getElementById('u-estado').value = estado;
+      
+      // Password not strictly required for updates
+      document.getElementById('password-container').classList.add('hidden');
+      document.getElementById('u-pass').required = false;
+
+      toggleRoleFields();
+
+      if (rolId === 1) {
+        document.getElementById('u-code').value = code;
+      } else if (rolId === 2) {
+        document.getElementById('u-phone').value = phone;
+        // set selected students
+        const select = document.getElementById('u-students');
+        Array.from(select.options).forEach(opt => {
+          opt.selected = studentIds.includes(parseInt(opt.value));
+        });
+      }
+
+      document.getElementById('user-modal').classList.remove('hidden');
+    }
+
+    async function saveUser(e) {
+      e.preventDefault();
+      
+      const id = document.getElementById('user-id').value;
+      const nombre = document.getElementById('u-nombre').value.trim();
+      const apellido = document.getElementById('u-apellido').value.trim();
+      const correo = document.getElementById('u-correo').value.trim();
+      const contrasena = document.getElementById('u-pass').value;
+      const rol_id = document.getElementById('u-rol').value;
+      const estado = document.getElementById('u-estado').value;
+
+      const body = { nombre, apellido, correo, rol_id, estado };
+      
+      if (!id && contrasena) body.contrasena = contrasena;
+      
+      if (parseInt(rol_id) === 1) {
+        body.codigo_estudiante = document.getElementById('u-code').value.trim();
+      } else if (parseInt(rol_id) === 2) {
+        body.telefono = document.getElementById('u-phone').value.trim();
+        const select = document.getElementById('u-students');
+        body.estudiantes_asociados = Array.from(select.selectedOptions).map(opt => parseInt(opt.value));
+      }
+
+      try {
+        let res;
+        if (id) {
+          res = await apiFetch(`/admin/usuarios/${id}`, {
+            method: 'PUT',
+            body: body
+          });
+        } else {
+          res = await apiFetch('/admin/usuarios', {
+            method: 'POST',
+            body: body
+          });
+        }
+
+        if (res.success) {
+          showToast(res.message, 'success');
+          closeUserModal();
+          loadUsers();
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function deleteUser(id) {
+      if (!confirm('¿Está seguro de eliminar este usuario? Si tiene historial de recargas o consumos, el sistema lo inhabilitará pasándolo a INACTIVO de forma segura.')) {
+        return;
+      }
+
+      try {
+        const res = await apiFetch(`/admin/usuarios/${id}`, { method: 'DELETE' });
+        if (res.success) {
+          showToast(res.message, 'success');
+          loadUsers();
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // ----------------------------------------------------
+    // RECHARGE MANAGEMENT
+    // ----------------------------------------------------
+    async function loadRecharges() {
+      try {
+        const res = await apiFetch('/recargas');
+        if (res.success) {
+          renderRechargesTable(res.data);
+        }
+      } catch (err) {
+        showToast('Error al obtener la lista de recargas.', 'error');
+      }
+    }
+
+    function renderRechargesTable(recharges) {
+      const tbody = document.getElementById('recharge-table-rows');
+      if (recharges.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-slate-400">No hay recargas registradas.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = recharges.map(r => {
+        const studentName = r.estudiante && r.estudiante.usuario 
+          ? `${r.estudiante.usuario.nombre} ${r.estudiante.usuario.apellido}`
+          : 'Desconocido';
+        const studentCode = r.estudiante ? r.estudiante.codigo_estudiante : 'N/A';
+        const dateStr = new Date(r.fecha).toLocaleString('es-CO');
+        const adminName = r.usuarioRegistra ? `${r.usuarioRegistra.nombre} ${r.usuarioRegistra.apellido}` : 'Sistema';
+        
+        const downloadLink = r.comprobante_pdf
+          ? `<a href="/comprobantes/${r.comprobante_pdf}" download class="p-1.5 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg text-xs font-bold transition-colors inline-flex items-center gap-1"><i class="fa-solid fa-file-pdf"></i> Descargar PDF</a>`
+          : '<span class="text-slate-300">-</span>';
+
+        return `
+          <tr>
+            <td class="font-medium text-slate-800">${studentName} (${studentCode})</td>
+            <td class="text-green-700 font-bold">+${formatCurrency(r.valor)}</td>
+            <td class="text-slate-500">${dateStr}</td>
+            <td>${adminName}</td>
+            <td>${downloadLink}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function registerRecharge(e) {
+      e.preventDefault();
+      
+      const codigo_estudiante = document.getElementById('rec-student-code').value.trim();
+      const valor = parseFloat(document.getElementById('rec-value').value);
+
+      try {
+        const res = await apiFetch('/recargas', {
+          method: 'POST',
+          body: { codigo_estudiante, valor }
+        });
+
+        if (res.success) {
+          showToast(`Recarga por $${valor.toFixed(0)} registrada con éxito. Nuevo saldo: $${parseFloat(res.data.nuevoSaldo).toFixed(0)}`, 'success');
+          document.getElementById('recharge-form').reset();
+          loadRecharges();
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // ----------------------------------------------------
+    // REPORTS SYSTEM
+    // ----------------------------------------------------
+    function downloadReport(format) {
+      const type = document.getElementById('rep-type').value;
+      const start = document.getElementById('rep-start').value;
+      const end = document.getElementById('rep-end').value;
+
+      let url = `/api/reportes/${type}?format=${format}`;
+      if (start && end) {
+        url += `&fecha_inicio=${start}&fecha_fin=${end}`;
+      }
+
+      // Since we need to pass authorization headers in apiFetch, we can fetch the file binary and prompt download in JS
+      // Or we can query using a new browser tab with authentication token mapped in query if wanted, but downloading using fetch is much cleaner.
+      downloadFile(url, `reporte_${type}_${Date.now()}.${format === 'excel' ? 'xlsx' : 'pdf'}`);
+    }
+
+    async function downloadFile(url, defaultFilename) {
+      const token = localStorage.getItem('token');
+      try {
+        showToast('Generando y descargando reporte...', 'info');
+        const res = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!res.ok) throw new Error('Error al descargar el archivo.');
+        
+        const blob = await res.blob();
+        const blobUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = defaultFilename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(blobUrl);
+        showToast('Descarga completada.', 'success');
+      } catch (err) {
+        showToast('No se pudo descargar el reporte.', 'error');
+      }
+    }
+
+    // ----------------------------------------------------
+    // AUDIT LOGS
+    // ----------------------------------------------------
+    async function loadAuditLogs() {
+      try {
+        const res = await apiFetch('/admin/auditoria');
+        if (res.success) {
+          const tbody = document.getElementById('audit-table-rows');
+          if (res.data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-6 text-slate-400">No hay registros de auditoría.</td></tr>';
+            return;
+          }
+
+          tbody.innerHTML = res.data.map(log => {
+            const userName = log.usuario ? `${log.usuario.nombre} ${log.usuario.apellido}` : 'Sistema';
+            const userEmail = log.usuario ? log.usuario.correo : 'N/A';
+            const dateStr = new Date(log.fecha).toLocaleString('es-CO');
+
+            return `
+              <tr>
+                <td class="text-slate-500 text-xs">${dateStr}</td>
+                <td>
+                  <span class="font-bold text-slate-800">${userName}</span><br>
+                  <span class="text-[10px] text-slate-400">${userEmail}</span>
+                </td>
+                <td class="font-medium text-slate-700">${log.accion}</td>
+                <td class="text-slate-500 font-mono">${log.ip}</td>
+              </tr>
+            `;
+          }).join('');
+        }
+      } catch (err) {
+        showToast('Error al cargar la bitácora de auditoría.', 'error');
+      }
+    }
+
+    function formatCurrency(val) {
+      return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(val);
+    }
+  </script>
+</body>
+</html>

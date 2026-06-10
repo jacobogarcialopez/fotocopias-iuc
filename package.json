@@ -1,0 +1,9 @@
+{
+  "name": "iuc-monedero-root",
+  "version": "1.0.0",
+  "scripts": {
+    "install-all": "npm install --prefix backend",
+    "start": "npm start --prefix backend",
+    "dev": "npm run dev --prefix backend"
+  }
+}

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar Sesión - Monedero Digital IUC</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
+
+  <div class="w-full max-w-md animate-slide-up">
+    <!-- Header Logo -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-iuc text-white text-3xl mb-3 shadow-md">
+        <i class="fa-solid fa-wallet"></i>
+      </div>
+      <h1 class="text-2xl font-bold text-slate-800">Instituto Universitario de Caldas</h1>
+      <p class="text-sm text-slate-500 mt-1">Sistema de Monedero Digital de Fotocopias</p>
+    </div>
+
+    <!-- Login Card -->
+    <div class="glass-panel rounded-2xl shadow-xl p-8 border border-white">
+      <h2 class="text-xl font-bold text-slate-800 mb-6 text-center">Acceso al Sistema</h2>
+      
+      <form id="login-form">
+        <!-- Email field -->
+        <div class="mb-5">
+          <label for="correo" class="block text-xs font-semibold text-slate-600 uppercase mb-2">Correo Institucional</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+              <i class="fa-solid fa-envelope"></i>
+            </span>
+            <input type="email" id="correo" required
+              class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100 text-sm transition-all"
+              placeholder="ejemplo@iuc.edu.co">
+          </div>
+        </div>
+
+        <!-- Password field -->
+        <div class="mb-6">
+          <div class="flex justify-between items-center mb-2">
+            <label for="contrasena" class="block text-xs font-semibold text-slate-600 uppercase">Contraseña</label>
+            <a href="#" id="btn-forgot" class="text-xs font-semibold text-verde hover:text-green-700 transition-colors">¿La olvidaste?</a>
+          </div>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+              <i class="fa-solid fa-lock"></i>
+            </span>
+            <input type="password" id="contrasena" required
+              class="w-full pl-10 pr-10 py-3 rounded-xl border border-slate-200 focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100 text-sm transition-all"
+              placeholder="••••••••">
+            <button type="button" id="toggle-password" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Login Button -->
+        <button type="submit" id="btn-submit"
+          class="w-full py-3 px-4 bg-gradient-iuc hover:bg-gradient-to-r text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
+          <span>Ingresar Seguro</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </form>
+    </div>
+
+    <!-- Info Footer -->
+    <div class="text-center mt-6">
+      <p class="text-xs text-slate-400">Desarrollado para el IUC - Caldas &copy; 2026</p>
+    </div>
+  </div>
+
+  <!-- Shared Javascript Libraries -->
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+
+  <!-- Page Logic -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // If user is already logged in, redirect them to their home page
+      const user = getUser();
+      if (user && localStorage.getItem('token')) {
+        window.location.href = getRedirectPath(user.rolId);
+      }
+
+      // Password visibility toggle
+      const passInput = document.getElementById('contrasena');
+      const toggleBtn = document.getElementById('toggle-password');
+      toggleBtn.addEventListener('click', () => {
+        const type = passInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passInput.setAttribute('type', type);
+        toggleBtn.innerHTML = type === 'password' ? '<i class="fa-solid fa-eye"></i>' : '<i class="fa-solid fa-eye-slash"></i>';
+      });
+
+      // Submit Form
+      const form = document.getElementById('login-form');
+      const submitBtn = document.getElementById('btn-submit');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const correo = document.getElementById('correo').value.trim();
+        const contrasena = document.getElementById('contrasena').value;
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch animate-spin"></i> Cargando...';
+
+        try {
+          const res = await apiFetch('/auth/login', {
+            method: 'POST',
+            body: { correo, contrasena }
+          });
+
+          if (res.success) {
+            localStorage.setItem('token', res.token);
+            localStorage.setItem('user', JSON.stringify(res.user));
+            showToast('Inicio de sesión exitoso. Redirigiendo...', 'success');
+            
+            setTimeout(() => {
+              window.location.href = getRedirectPath(res.user.rolId);
+            }, 1000);
+          }
+        } catch (err) {
+          showToast(err.message || 'Error al iniciar sesión.', 'error');
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>Ingresar Seguro</span> <i class="fa-solid fa-arrow-right"></i>';
+        }
+      });
+
+      // Forgot Password simulation
+      const forgotBtn = document.getElementById('btn-forgot');
+      forgotBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const correo = document.getElementById('correo').value.trim();
+        if (!correo) {
+          showToast('Por favor ingrese su correo electrónico para iniciar la recuperación.', 'warning');
+          return;
+        }
+
+        try {
+          const res = await apiFetch('/auth/forgot-password', {
+            method: 'POST',
+            body: { correo }
+          });
+          showToast(res.message, 'info');
+        } catch (err) {
+          showToast(err.message, 'error');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
