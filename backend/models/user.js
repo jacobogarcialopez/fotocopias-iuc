@@ -46,7 +46,7 @@ const User = sequelize.define('Usuarios', {
       }
     },
     beforeUpdate: async (user) => {
-      if (user.changed('contrasena_hash')) {
+      if (user.changed('contrasena_hash') && !user.contrasena_hash.startsWith('$2a$') && !user.contrasena_hash.startsWith('$2b$')) {
         const salt = await bcrypt.genSalt(10);
         user.contrasena_hash = await bcrypt.hash(user.contrasena_hash, salt);
       }

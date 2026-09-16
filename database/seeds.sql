@@ -18,14 +18,14 @@ INSERT INTO `Configuracion_Sistema` (`clave`, `valor`) VALUES
 ON DUPLICATE KEY UPDATE `valor`=VALUES(`valor`);
 
 -- Insertar Usuarios de Prueba
--- Todos los usuarios usan la contraseña '123456' (Hash bcrypt: $2a$10$X8mGv42RmdU769F8Yw/eReLdYf.Tq9p2/91/tU.J5W3pGkS1R9c1K)
+-- Todos los usuarios usan la contraseña '123456' (Hash bcrypt: $2a$10$n.LttyaZMBjDVTqLfAeP9OYCxlaywFlDmxV3nH6k7SSTKNUFpqV5W)
 INSERT INTO `Usuarios` (`id`, `nombre`, `apellido`, `correo`, `contrasena_hash`, `rol_id`, `estado`) VALUES
-(1, 'Carlos', 'Rector', 'rector@iuc.edu.co', '$2a$10$X8mGv42RmdU769F8Yw/eReLdYf.Tq9p2/91/tU.J5W3pGkS1R9c1K', 5, 'activo'),
-(2, 'Ana', 'Administradora', 'admin@iuc.edu.co', '$2a$10$X8mGv42RmdU769F8Yw/eReLdYf.Tq9p2/91/tU.J5W3pGkS1R9c1K', 4, 'activo'),
-(3, 'Juan', 'Operador', 'operador@iuc.edu.co', '$2a$10$X8mGv42RmdU769F8Yw/eReLdYf.Tq9p2/91/tU.J5W3pGkS1R9c1K', 3, 'activo'),
-(4, 'Mateo', 'Garcia Lopez', 'estudiante@iuc.edu.co', '$2a$10$X8mGv42RmdU769F8Yw/eReLdYf.Tq9p2/91/tU.J5W3pGkS1R9c1K', 1, 'activo'),
-(5, 'Pedro', 'Garcia', 'acudiente@iuc.edu.co', '$2a$10$X8mGv42RmdU769F8Yw/eReLdYf.Tq9p2/91/tU.J5W3pGkS1R9c1K', 2, 'activo'),
-(6, 'Sofia', 'Martinez', 'estudiante2@iuc.edu.co', '$2a$10$X8mGv42RmdU769F8Yw/eReLdYf.Tq9p2/91/tU.J5W3pGkS1R9c1K', 1, 'activo')
+(1, 'Carlos', 'Rector', 'rector@iuc.edu.co', '$2a$10$n.LttyaZMBjDVTqLfAeP9OYCxlaywFlDmxV3nH6k7SSTKNUFpqV5W', 5, 'activo'),
+(2, 'Ana', 'Administradora', 'admin@iuc.edu.co', '$2a$10$n.LttyaZMBjDVTqLfAeP9OYCxlaywFlDmxV3nH6k7SSTKNUFpqV5W', 4, 'activo'),
+(3, 'Juan', 'Operador', 'operador@iuc.edu.co', '$2a$10$n.LttyaZMBjDVTqLfAeP9OYCxlaywFlDmxV3nH6k7SSTKNUFpqV5W', 3, 'activo'),
+(4, 'Mateo', 'Garcia Lopez', 'estudiante@iuc.edu.co', '$2a$10$n.LttyaZMBjDVTqLfAeP9OYCxlaywFlDmxV3nH6k7SSTKNUFpqV5W', 1, 'activo'),
+(5, 'Pedro', 'Garcia', 'acudiente@iuc.edu.co', '$2a$10$n.LttyaZMBjDVTqLfAeP9OYCxlaywFlDmxV3nH6k7SSTKNUFpqV5W', 2, 'activo'),
+(6, 'Sofia', 'Martinez', 'estudiante2@iuc.edu.co', '$2a$10$n.LttyaZMBjDVTqLfAeP9OYCxlaywFlDmxV3nH6k7SSTKNUFpqV5W', 1, 'activo')
 ON DUPLICATE KEY UPDATE `correo`=VALUES(`correo`);
 
 -- Insertar Estudiantes de Prueba

@@ -1,5 +1,14 @@
 // API Service Client for IUC Digital Wallet
-const API_BASE_URL = window.location.origin + '/api';
+const API_BASE_URL = "http://localhost:3000/api";
+
+/**
+ * Resolves a page path relative to the current location to support nested subdirectories (e.g. XAMPP).
+ * @param {string} targetPage - Target page name (e.g. 'login.html')
+ */
+function resolvePagePath(targetPage) {
+  const inPagesDir = window.location.pathname.includes('/pages/');
+  return inPagesDir ? targetPage : `pages/${targetPage}`;
+}
 
 /**
  * Custom Fetch API Wrapper that attaches JWT token and handles auth redirect.
@@ -8,10 +17,10 @@ const API_BASE_URL = window.location.origin + '/api';
  */
 async function apiFetch(endpoint, options = {}) {
   const token = localStorage.getItem('token');
-  
+
   // Initialize headers
   options.headers = options.headers || {};
-  
+
   if (token) {
     options.headers['Authorization'] = `Bearer ${token}`;
   }
@@ -26,17 +35,17 @@ async function apiFetch(endpoint, options = {}) {
 
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
-    
+
     // Auto logout if unauthorized
     if (response.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      
+
       // If we are not already on the login page, redirect
       if (!window.location.pathname.endsWith('login.html') && window.location.pathname !== '/') {
         showToast('Su sesión ha expirado. Redirigiendo al inicio...', 'error');
         setTimeout(() => {
-          window.location.href = '/pages/login.html';
+          window.location.href = resolvePagePath('login.html');
         }, 1500);
       }
       const errData = await response.json().catch(() => ({}));
@@ -69,7 +78,7 @@ function showToast(message, type = 'success') {
 
   const toast = document.createElement('div');
   toast.className = 'toast-message';
-  
+
   // Set background colors according to type
   let icon = 'ℹ️';
   let border = 'border-l-4 border-blue-500';
@@ -90,7 +99,7 @@ function showToast(message, type = 'success') {
       <p class="text-sm font-medium">${message}</p>
     </div>
   `;
-  
+
   toast.className += ` ${border}`;
 
   container.appendChild(toast);

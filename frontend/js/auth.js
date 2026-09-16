@@ -19,12 +19,12 @@ function getUser() {
  */
 function getRedirectPath(rolId) {
   switch (parseInt(rolId)) {
-    case 1: return '/pages/estudiante.html';
-    case 2: return '/pages/acudiente.html';
-    case 3: return '/pages/operador.html';
-    case 4: return '/pages/administrativo.html';
-    case 5: return '/pages/rector.html';
-    default: return '/pages/login.html';
+    case 1: return resolvePagePath('estudiante.html');
+    case 2: return resolvePagePath('acudiente.html');
+    case 3: return resolvePagePath('operador.html');
+    case 4: return resolvePagePath('administrativo.html');
+    case 5: return resolvePagePath('rector.html');
+    default: return resolvePagePath('login.html');
   }
 }
 
@@ -39,7 +39,7 @@ function checkSession(allowedRoles = []) {
   if (!token || !user) {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    window.location.href = '/pages/login.html';
+    window.location.href = resolvePagePath('login.html');
     return;
   }
 
@@ -73,6 +73,6 @@ async function logoutUser() {
   } finally {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    window.location.href = '/pages/login.html';
+    window.location.href = resolvePagePath('login.html');
   }
 }

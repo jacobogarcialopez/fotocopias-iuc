@@ -406,14 +406,13 @@ Para aprovechar el servidor web Apache incluido en XAMPP y servir el frontend de
 
 ### 7.7. Paso 6: Verificación de Roles y Acceso al Sistema
 Abra su navegador de preferencia y acceda a la interfaz gráfica del sistema mediante la URL:
-👉 **[http://localhost/fotocopias/pages/login.html](http://localhost/fotocopias/pages/login.html)**
+👉 **[http://localhost/fotocopias/frontend/pages/login.html](http://localhost/fotocopias/pages/login.html)**
 
 Inicie sesión con cualquiera de los perfiles de prueba sembrados en la base de datos (contraseña general `123456`):
 - **Rector (Panel de Control y Modo Emergencia):** `rector@iuc.edu.co`
 - **Administrativo (Gestión de usuarios y Recargas):** `admin@iuc.edu.co`
-- **Operador (Escáner de QR y Consumos):** `operador@iuc.edu.co`
 - **Estudiante (Generación de QR y Balance):** `estudiante@iuc.edu.co`
-- **Acudiente (Monitoreo de hijos):** `acudiente@iuc.edu.co`
+- **Operador (Escáner de QR y Consumos):** `operador@iuc.edu.co`
 
 *Nota: Ante cualquier error de red en consola, verifique que no existan bloqueos de cortafuegos (firewall) locales en el puerto 3000 y que la política de CORS esté permitida.*
 
